@@ -1,38 +1,30 @@
-Role Name
-=========
+# ansible_german_gateway
 
-A brief description of the role goes here.
+Ansible-роль для автоматической настройки немецкого оптического аплинка (DE) и транзитного DHCP-сервера для виртуальных машин на физических гипервизорах Ubuntu 24.04.
 
-Requirements
-------------
+## Требования
 
-Any pre-requisites that may not be covered by Ansible itself or the role should be mentioned here. For instance, if the role uses the EC2 module, it may be a good idea to mention in this section that the boto package is required.
+* ОС гипервизора: Ubuntu 24.04 LTS (Noble Numbat)
+* Сетевой стек: Netplan + systemd-networkd
+* Наличие установленной роли для управления фаерволом (рекомендуется `sorrowless.iptables`)
 
-Role Variables
---------------
+## Переменные роли (Defaults)
 
-A description of the settable variables for this role should go here, including any variables that are in defaults/main.yml, vars/main.yml, and any variables that can/should be set via parameters to the role. Any variables that are read from other roles and/or the global scope (ie. hostvars, group vars, etc.) should be mentioned here as well.
+| Переменная | Значение по умолчанию | Описание |
+|---|---|---|
+| `german_interface` | `enp216s0f1` | Физический интерфейс немецкой оптики |
+| `german_gateway` | `91.247.185.161` | Шлюз немецкого провайдера |
+| `german_subnet` | `91.247.185.160/28` | Выделенная немецкая подсеть |
+| `vm_private_subnet` | `10.99.0.0/24` | Серая транзитная сеть для ВМ |
+| `vm_private_gateway` | `10.99.0.1` | Серый IP-шлюз на хосте |
 
-Dependencies
-------------
+*Переменная `german_ip` (уникальный белый IP хоста) задается индивидуально для каждого гипервизора в файле инвентаря.*
 
-A list of other roles hosted on Galaxy should go here, plus any details in regards to parameters that may need to be set for other roles, or variables that are used from other roles.
+## Пример использования (Playbook)
 
-Example Playbook
-----------------
-
-Including an example of how to use your role (for instance, with variables passed in as parameters) is always nice for users too:
-
-    - hosts: servers
-      roles:
-         - { role: username.rolename, x: 42 }
-
-License
--------
-
-BSD
-
-Author Information
-------------------
-
-An optional section for the role authors to include contact information, or a website (HTML is not allowed).
+```yaml
+- name: Configure German Uplink on Hypervisors
+  hosts: hypervisors
+  become: true
+  roles:
+    - role: jony321.german_gateway

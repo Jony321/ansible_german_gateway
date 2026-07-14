@@ -1,3 +1,38 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# tasks file for ansible_german_gateway
+- name: Install dnsmasq package
+  ansible.builtin.apt:
+    name: dnsmasq
+    state: present
+    update_cache: true
+
+- name: Enable IPv4 forwarding in sysctl (persistent)
+  ansible.posix.sysctl:
+    name: net.ipv4.ip_forward
+    value: '1'
+    sysctl_set: true
+    state: present
+    reload: true
+
+- name: Generate permanent Netplan configuration
+  ansible.builtin.template:
+    src: 60-german-uplink.yaml.j2
+    dest: /etc/netplan/60-german-uplink.yaml
+    owner: root
+    group: root
+    mode: '0600'
+  notify: Apply Netplan
+
+- name: Generate dnsmasq configuration for vSwitch_DE
+  ansible.builtin.template:
+    src: dnsmasq_vswitch_de.conf.j2
+    dest: /etc/dnsmasq.d/vswitch_de.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart dnsmasq
+
+- name: Ensure dnsmasq service is enabled and started
+  ansible.builtin.service:
+    name: dnsmasq
+    enabled: true
+    state: started

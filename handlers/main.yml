@@ -1,3 +1,9 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# handlers file for ansible_german_gateway
+- name: Apply Netplan
+  ansible.builtin.command:
+    cmd: "netplan apply"
+
+- name: Restart dnsmasq
+  ansible.builtin.service:
+    name: dnsmasq
+    state: restarted

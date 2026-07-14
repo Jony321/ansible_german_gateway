@@ -1,3 +1,7 @@
-#SPDX-License-Identifier: MIT-0
 ---
-# defaults file for ansible_german_gateway
+# Значения по умолчанию для роли german_gateway
+german_gateway: 91.247.185.161
+german_subnet: 91.247.185.160/28
+vm_private_subnet: 10.99.0.0/24
+vm_private_gateway: 10.99.0.1
+# Переменные german_interface и german_ip будут уникальными для каждого хоста и задаются в инвентаре

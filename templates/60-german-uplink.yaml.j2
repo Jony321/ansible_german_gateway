@@ -1,0 +1,25 @@
+# {{ ansible_managed }}
+network:
+  version: 2
+  renderer: networkd
+  ethernets:
+    {{ german_interface }}:
+      dhcp4: false
+      addresses:
+        - {{ german_ip }}/28
+      routes:
+        - to: default
+          via: {{ german_gateway }}
+          table: 200
+      routing-policy:
+        - from: {{ german_ip }}
+          table: 200
+        - from: {{ vm_private_subnet }}
+          table: 200
+  bridges:
+    vSwitch_DE:
+      addresses:
+        - {{ vm_private_gateway }}/24
+      parameters:
+        stp: false
+        forward-delay: 0

@@ -1,0 +1,6 @@
+# {{ ansible_managed }}
+interface=vSwitch_DE
+bind-interfaces
+dhcp-range=10.99.0.10,10.99.0.250,255.255.255.0,12h
+dhcp-option=3,10.99.0.1
+dhcp-option=6,8.8.8.8,1.1.1.1
