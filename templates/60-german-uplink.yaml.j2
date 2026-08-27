@@ -6,14 +6,27 @@ network:
     {{ german_interface }}:
       dhcp4: false
       addresses:
+{% if german_ip is string %}
         - {{ german_ip }}/28
+{% else %}
+{% for ip in german_ip %}
+        - {{ ip }}/28
+{% endfor %}
+{% endif %}
       routes:
         - to: default
           via: {{ german_gateway }}
           table: 200
       routing-policy:
+{% if german_ip is string %}
         - from: {{ german_ip }}
           table: 200
+{% else %}
+{% for ip in german_ip %}
+        - from: {{ ip }}
+          table: 200
+{% endfor %}
+{% endif %}
         - from: {{ vm_private_subnet }}
           table: 200
   bridges:
