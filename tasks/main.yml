@@ -36,3 +36,58 @@
     name: dnsmasq
     enabled: true
     state: started
+
+# --- Логика избирательного SNAT ---
+
+- name: Нормализация переменной german_ip в список
+  ansible.builtin.set_fact:
+    de_ip_list: "{{ german_ip.split(',') if (german_ip is string) else german_ip }}"
+
+# 1. Удаляем старое глобальное правило MASQUERADE с точным указанием комментария
+- name: Удаление старого глобального правила MASQUERADE (если существовало)
+  ansible.builtin.iptables:
+    table: nat
+    chain: POSTROUTING
+    source: "{{ vm_private_subnet | default('10.99.0.0/24') }}"
+    out_interface: "{{ german_interface }}"
+    jump: MASQUERADE
+    comment: "masquerade-german-uplink"
+    state: absent
+
+# 2. Настраиваем правила SNAT для чанков ВМ
+- name: Настройка правил SNAT для чанков ВМ
+  ansible.builtin.iptables:
+    table: nat
+    chain: POSTROUTING
+    src_range: "10.99.0.{{ 11 + my_idx * (vms_per_ip | default(5)) }}-10.99.0.{{ 10 + (my_idx + 1) * (vms_per_ip | default(5)) }}"
+    out_interface: "{{ german_interface }}"
+    jump: SNAT
+    to_source: "{{ item }}"
+    comment: "SNAT Chunk {{ my_idx }}"
+    action: append
+  loop: "{{ de_ip_list }}"
+  loop_control:
+    index_var: my_idx
+
+# 3. Страховочное (Fallback) правило
+- name: Добавление Fallback SNAT правила для всех остальных машин {{ vm_private_subnet }}
+  ansible.builtin.iptables:
+    table: nat
+    chain: POSTROUTING
+    source: "{{ vm_private_subnet | default('10.99.0.0/24') }}"
+    out_interface: "{{ german_interface }}"
+    jump: SNAT
+    to_source: "{{ de_ip_list[0] }}"
+    comment: "SNAT Fallback for remaining VMs"
+    action: append
+
+# 4. Сохранение правил iptables
+- name: Установка пакета iptables-persistent
+  ansible.builtin.package:
+    name: iptables-persistent
+    state: present
+
+- name: Сохранение правил iptables v4
+  ansible.builtin.shell:
+    cmd: "iptables-save > /etc/iptables/rules.v4"
+  changed_when: false
