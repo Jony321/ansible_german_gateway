@@ -43,17 +43,6 @@
   ansible.builtin.set_fact:
     de_ip_list: "{{ german_ip.split(',') if (german_ip is string) else german_ip }}"
 
-# 1. Удаляем старое глобальное правило MASQUERADE с точным указанием комментария (если было)
-- name: Удаление старого глобального правила MASQUERADE (с комментарием)
-  ansible.builtin.iptables:
-    table: nat
-    chain: POSTROUTING
-    source: "{{ vm_private_subnet | default('10.99.0.0/24') }}"
-    out_interface: "{{ german_interface }}"
-    jump: MASQUERADE
-    comment: "masquerade-german-uplink"
-    state: absent
-
 # 3. Настраиваем правила SNAT для чанков ВМ (используем state: present для идемпотентности)
 - name: Настройка правил SNAT для чанков ВМ
   ansible.builtin.iptables:

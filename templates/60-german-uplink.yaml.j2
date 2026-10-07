@@ -7,10 +7,10 @@ network:
       dhcp4: false
       addresses:
 {% if german_ip is string %}
-        - {{ german_ip }}/28
+        - {{ german_ip }}/{{ german_subnet_mask }}
 {% else %}
 {% for ip in german_ip %}
-        - {{ ip }}/28
+        - {{ ip }}/{{ german_subnet_mask }}
 {% endfor %}
 {% endif %}
       routes:
