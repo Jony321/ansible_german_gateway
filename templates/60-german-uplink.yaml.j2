@@ -14,7 +14,7 @@ network:
 {% endfor %}
 {% endif %}
       routes:
-        - to: default
+        - to: 0.0.0.0/0
           via: {{ german_gateway }}
           table: 200
       routing-policy:
